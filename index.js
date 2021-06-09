@@ -82,6 +82,7 @@ const handleArgs = (args, msg) => {
     const hasBanPermissions = msg.member.hasPermission(["BAN_MEMBERS"]);
     if (!hasBanPermissions) {
       msg.reply("You have insufficient permission.");
+      return;
     }
 
     const bannedPeople = [];
@@ -104,7 +105,7 @@ const handleArgs = (args, msg) => {
       console.log(
         `Person ${displayName}, createdAt: ${usersDate}, diff: ${diffDay}`
       );
-      if (dis || (nick && diffDay > 30)) {
+      if (dis || (nick && diffDay < 30)) {
         bannedPeople.push({ userId, displayName, nickname });
         user.ban({ days: 7 });
       }
