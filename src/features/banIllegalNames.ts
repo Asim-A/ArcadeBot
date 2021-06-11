@@ -34,7 +34,9 @@ const fromMember = (member: UserGuildMemberTuple): CachedMember => {
   };
 };
 
-export const banIllegalNames = (member: UserGuildMemberTuple): CachedMember => {
+export const banIllegalNames = (
+  member: UserGuildMemberTuple
+): CachedMember | null => {
   const cachedMember = fromMember(member);
   const { guildMember } = cachedMember;
   const user = guildMember.user;
@@ -47,7 +49,8 @@ export const banIllegalNames = (member: UserGuildMemberTuple): CachedMember => {
 
   if (shouldBeBanned && diffDay < 30) {
     guildMember.ban({ days: 7 });
+    return cachedMember;
   }
 
-  return cachedMember;
+  return null;
 };
