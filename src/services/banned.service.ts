@@ -1,4 +1,4 @@
-import { BannedName } from "../interfaces/interfaces";
+import { BannedName } from "../interfaces";
 
 const BAN_LIST: string[] = ["h0nde", "h0nda"];
 const BAN_NAMES: BannedName[] = BAN_LIST.map(

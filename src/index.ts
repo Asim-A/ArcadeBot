@@ -1,25 +1,34 @@
 import { Client, Collection, Message } from "discord.js";
 import { readdir } from "fs";
-import { banIllageNames } from "./features/banIllegalNames";
-import { RunEvent } from "./interfaces/interfaces";
+import { banIllegalNames } from "./features/banIllegalNames";
+import { RunEvent } from "./interfaces";
+import { logger } from "./util/logger";
 
 require("dotenv").config();
 
 const client = new Client();
-const PREFIX = "##";
+const PREFIX = "---";
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const commands: Collection<string[], (event: RunEvent) => any> =
   new Collection();
 
-readdir("./commands/", (err, filesInDir) => {
-  if (err) console.log(err);
-  let files = filesInDir.filter((f) => f.split(".").pop());
+const PATH = "./src/commands";
+const COMMAND_SOURCE_PATH = "./commands";
 
-  if (filesInDir.length <= 0) {
-    console.log("No commands found!");
+readdir(`${PATH}`, (err, filesInDir) => {
+  if (err) {
+    logger.error(err);
+  }
+
+  const files = filesInDir.map((fileString) => fileString.split(".")[0]);
+
+  if (files.length <= 0) {
+    logger.info("No commands found!");
   } else {
-    for (let file of files) {
-      const props = require(`./commands/${file}`) as {
+    for (let fileString of files) {
+      const pathToFile = `${COMMAND_SOURCE_PATH}/${fileString}`;
+
+      const props = require(pathToFile) as {
         names: string[];
         run: (event: RunEvent) => any;
       };
@@ -28,7 +37,7 @@ readdir("./commands/", (err, filesInDir) => {
   }
 });
 
-client.once("ready", () => {
+client.on("ready", () => {
   console.log(`Logged in as ${client?.user?.tag}!`);
 });
 
@@ -51,19 +60,20 @@ client.on("message", async (message: Message) => {
 
   if (!commandRunnable) {
     return;
-  } else
+  } else {
     commandRunnable({
       message,
       args,
       client,
     });
+  }
 });
 
 client.on("guildMemberAdd", async (member) => {
   const userId = member.user.id;
   const guildMember = member;
 
-  banIllageNames([userId, guildMember]);
+  banIllegalNames([userId, guildMember]);
 });
 
 client.login(BOT_TOKEN);

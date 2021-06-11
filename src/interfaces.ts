@@ -5,7 +5,6 @@ export interface RunEvent {
   client: Client;
   args: string[];
 }
-
 export interface Argument {
   command: string;
   data: string;

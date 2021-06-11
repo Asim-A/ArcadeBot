@@ -1,5 +1,5 @@
 import { GuildMember } from "discord.js";
-import { CachedMember, UserGuildMemberTuple } from "../interfaces/interfaces";
+import { CachedMember, UserGuildMemberTuple } from "../interfaces";
 import { getBannedList } from "../services/banned.service";
 import { dateDiffInDays } from "../util/date";
 
@@ -34,7 +34,7 @@ const fromMember = (member: UserGuildMemberTuple): CachedMember => {
   };
 };
 
-export const banIllageNames = (member: UserGuildMemberTuple): CachedMember => {
+export const banIllegalNames = (member: UserGuildMemberTuple): CachedMember => {
   const cachedMember = fromMember(member);
   const { guildMember } = cachedMember;
   const user = guildMember.user;

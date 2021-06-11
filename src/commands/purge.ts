@@ -1,5 +1,5 @@
-import { banIllageNames } from "../features/banIllegalNames";
-import { CachedMember, RunEvent } from "../interfaces/interfaces";
+import { banIllegalNames } from "../features/banIllegalNames";
+import { CachedMember, RunEvent } from "../interfaces";
 
 export const run = (event: RunEvent) => {
   const { message } = event;
@@ -19,7 +19,7 @@ export const run = (event: RunEvent) => {
   const bannedPeople: Array<CachedMember> = [];
 
   for (const member of members) {
-    const banned = banIllageNames(member);
+    const banned = banIllegalNames(member);
     if (banned != null) {
       bannedPeople.push(banned);
     }

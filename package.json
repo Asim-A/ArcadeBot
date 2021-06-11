@@ -1,10 +1,13 @@
 {
-  "name": "ArcadeBot",
+  "name": "arcade_bot",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "start": "tsc && dist/index.js",
+    "start": "node dist/index.js",
+    "watch": "tsc --watch",
+    "build": "tsc",
+    "dev": "nodemon",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Asim Abazi (github: Asim-A)",
@@ -17,6 +20,8 @@
   },
   "devDependencies": {
     "@types/node": "^15.12.2",
+    "@types/ws": "^7.4.4",
+    "nodemon": "^2.0.7",
     "pino-pretty": "^5.0.2",
     "typescript": "^4.3.2"
   }
