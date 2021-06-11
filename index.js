@@ -40,7 +40,8 @@ const matchName = (name, match) => {
 };
 
 const isHonde = (name) => {
-  return matchName(name, "h0nde");
+  var isThatGuy = matchName(name, "h0nde") || matchName(name, "h0nda");
+  return isThatGuy;
 };
 
 const isTwitter = (name) => {
@@ -110,6 +111,7 @@ const handleArgs = (args, msg) => {
         user.ban({ days: 7 });
       }
     }
+
     const bLen = bannedPeople.length;
     if (bLen == 0) {
       msg.reply(`There were no users worth banning.`);
