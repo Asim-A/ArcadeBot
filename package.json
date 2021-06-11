@@ -1,16 +1,23 @@
 {
-  "name": "ban_bot",
+  "name": "ArcadeBot",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "tsc && dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Asim Abazi (github: Asim-A)",
   "license": "ISC",
   "dependencies": {
+    "@types/pino": "^6.3.8",
     "discord.js": "^12.5.3",
-    "dotenv": "^10.0.0"
+    "dotenv": "^10.0.0",
+    "pino": "^6.11.3"
+  },
+  "devDependencies": {
+    "@types/node": "^15.12.2",
+    "pino-pretty": "^5.0.2",
+    "typescript": "^4.3.2"
   }
 }
