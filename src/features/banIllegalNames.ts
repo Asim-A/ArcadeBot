@@ -1,10 +1,12 @@
-import { GuildMember } from "discord.js";
-import { CachedMember, UserGuildMemberTuple } from "../interfaces";
+import { GuildMember, Message } from "discord.js";
+import { BanGroup, CachedMember, UserGuildMemberTuple } from "../interfaces";
 import { getBannedList } from "../services/banned.service";
 import { dateDiffInDaysUntilToday } from "../util/date";
 
 const BAN_LIST = getBannedList();
 const MINIMUM_DISCORD_ACCOUNT_OLD_DAYS = 30;
+
+const GROUP_SIZE = 3; // TODO: Ask Saim whether he wants groups of 3 || 5.
 
 const shouldMemberBeBanned = (guildMember: GuildMember): boolean => {
   let { displayName, nickname } = guildMember;
@@ -73,8 +75,47 @@ export const findMembersWithIllegalNames = (
     const shouldBeBanned = shouldMemberBeBanned(guildMember);
 
     if (shouldBeBanned) {
+      possibleBans.push(cachedMember);
     }
   }
 
   return possibleBans;
 };
+
+export const groupMembersThatShouldBeBanned = (
+  message: Message,
+  guildMembersUpForBan: CachedMember[]
+): BanGroup => {
+  const { author, guild } = message;
+  const banGroup: BanGroup = { owner: author, guild: guild, group: null };
+  const listSize = guildMembersUpForBan.length;
+  let groupNumber = 0;
+
+  const group: Map<number, Array<CachedMember>> = new Map();
+  for (let i = 0; i < listSize; i += GROUP_SIZE) {
+    const groupMembers: CachedMember[] = [];
+
+    for (let j = 0; j < GROUP_SIZE; j++) {
+      const offset = i + j;
+      if (offset > listSize) {
+        break;
+      }
+
+      const groupMember = guildMembersUpForBan[offset];
+      groupMembers.push(groupMember);
+    }
+
+    group.set(groupNumber, groupMembers);
+    groupNumber++;
+  }
+
+  banGroup.group = group;
+
+  return banGroup;
+};
+
+/**
+ * Go through GROUP_SIZE amount of members, keep adding until
+ * i % GROUP_SIZE == 0, lag ny array
+ *
+ */
