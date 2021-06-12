@@ -7,7 +7,7 @@ import { logger } from "./util/logger";
 require("dotenv").config();
 
 const client = new Client();
-const PREFIX = "---";
+const PREFIX = "##";
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const commands: Collection<string[], (event: RunEvent) => any> =
   new Collection();
