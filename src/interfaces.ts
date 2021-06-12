@@ -1,4 +1,11 @@
-import { Client, Guild, GuildMember, Message, User } from "discord.js";
+import {
+  Client,
+  Collection,
+  Guild,
+  GuildMember,
+  Message,
+  User,
+} from "discord.js";
 
 export interface RunEvent {
   message: Message;

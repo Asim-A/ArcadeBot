@@ -1,4 +1,7 @@
-import { banIllegalNames } from "../features/banIllegalNames";
+import {
+  banIllegalNames,
+  findMembersWithIllegalNames,
+} from "../features/banIllegalNames";
 import { CachedMember, RunEvent } from "../interfaces";
 
 export const run = (event: RunEvent) => {
@@ -16,14 +19,8 @@ export const run = (event: RunEvent) => {
     return;
   }
 
-  const bannedPeople: Array<CachedMember> = [];
-
-  for (const member of members) {
-    const banned = banIllegalNames(member);
-    if (banned != null) {
-      bannedPeople.push(banned);
-    }
-  }
+  const bannedPeople: Array<CachedMember> =
+    findMembersWithIllegalNames(members);
 
   const bannedAmount = bannedPeople.length;
   const hasSuccessfullyBanned = bannedAmount == 0;
@@ -31,9 +28,20 @@ export const run = (event: RunEvent) => {
   if (hasSuccessfullyBanned) {
     message.reply(`There were no users worth banning.`);
   } else {
-    message.reply(
-      `There were ${bannedAmount} user found worth banning.\n Cya!`
-    );
+    let replyString: string = `There were ${bannedAmount} user found worth banning.\n`;
+
+    for (let member of bannedPeople) {
+      const { userId, guildMember } = member;
+
+      const msg = `<@${userId}\n>`;
+      replyString += msg;
+    }
+
+    message
+      .reply(replyString, {
+        split: true,
+      })
+      .then((msg) => {}); // parse https://discordjs.guide/popular-topics/collectors.html#await-messages
   }
 };
 

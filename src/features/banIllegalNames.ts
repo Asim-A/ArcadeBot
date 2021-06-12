@@ -1,12 +1,12 @@
-import { GuildMember, Message } from "discord.js";
+import { Collection, GuildMember, Message } from "discord.js";
 import { BanGroup, CachedMember, UserGuildMemberTuple } from "../interfaces";
-import { getBannedList } from "../services/banned.service";
+import { getBannedGroupSize, getBannedList } from "../services/banned.service";
 import { dateDiffInDaysUntilToday } from "../util/date";
 
 const BAN_LIST = getBannedList();
 const MINIMUM_DISCORD_ACCOUNT_OLD_DAYS = 30;
 
-const GROUP_SIZE = 3; // TODO: Ask Saim whether he wants groups of 3 || 5.
+const GROUP_SIZE = getBannedGroupSize();
 
 const shouldMemberBeBanned = (guildMember: GuildMember): boolean => {
   let { displayName, nickname } = guildMember;
@@ -65,7 +65,7 @@ export const banIllegalNames = (
 };
 
 export const findMembersWithIllegalNames = (
-  members: UserGuildMemberTuple[]
+  members: Collection<string, GuildMember>
 ): CachedMember[] => {
   const possibleBans: CachedMember[] = [];
 
@@ -104,7 +104,6 @@ export const groupMembersThatShouldBeBanned = (
       const groupMember = guildMembersUpForBan[offset];
       groupMembers.push(groupMember);
     }
-
     group.set(groupNumber, groupMembers);
     groupNumber++;
   }
