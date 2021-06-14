@@ -1,13 +1,60 @@
-import { GuildMember } from "discord.js";
-import { CachedMember, UserGuildMemberTuple } from "../interfaces";
-import { getBannedList } from "../services/banned.service";
+import { Collection, Guild, GuildMember, Message } from "discord.js";
+import { BanGroup, CachedMember, UserGuildMemberTuple } from "../interfaces";
+import { getBannedGroupSize, getBannedList } from "../services/banned.service";
 import { dateDiffInDaysUntilToday } from "../util/date";
 
 const BAN_LIST = getBannedList();
+
 const MINIMUM_DISCORD_ACCOUNT_OLD_DAYS = 30;
+const PROTECTED_ROLE_NAME = "PurgeProtection";
+const GROUP_SIZE = getBannedGroupSize();
+
+const createProtectionRole = (): Object => {
+  const role = {
+    data: {
+      name: PROTECTED_ROLE_NAME,
+    },
+    reason: "Role to protect against purge.",
+  };
+  return role;
+};
+
+export const serverProtectionRoleCheck = (guild: Guild) => {
+  const roles = guild.roles.cache;
+  let hasProtectedRole: boolean = false;
+  roles.forEach((role) => {
+    if (role.name === PROTECTED_ROLE_NAME) {
+      hasProtectedRole = true;
+    }
+  });
+
+  if (!hasProtectedRole) {
+    guild.roles.create(createProtectionRole());
+  }
+};
+
+const memberHasProtection = (member: GuildMember): boolean => {
+  const memberRoles = member.roles.cache;
+  let isProtected = false;
+  memberRoles.forEach((role) => {
+    if (role.name === PROTECTED_ROLE_NAME) {
+      isProtected = true;
+    }
+  });
+
+  return isProtected;
+};
 
 const shouldMemberBeBanned = (guildMember: GuildMember): boolean => {
+  // if (guildMember.guild.id === "315008534582657024") return true;
+
+  if (memberHasProtection(guildMember)) {
+    return false;
+  }
+
   let { displayName, nickname } = guildMember;
+  const username = guildMember.user.username;
+
   displayName = displayName.toLocaleLowerCase();
   if (nickname != null) {
     nickname = nickname?.toLocaleLowerCase();
@@ -19,10 +66,18 @@ const shouldMemberBeBanned = (guildMember: GuildMember): boolean => {
     const displayNameContainsBanName: boolean =
       displayName.includes(banned_name);
 
-    const nicknameContinsBanName: boolean =
+    const nicknameContainsBanName: boolean =
       nickname.length != 0 && nickname.includes(banned_name);
 
-    if (displayNameContainsBanName || nicknameContinsBanName) {
+    const userNameContainsBanName: boolean = username.includes(banned_name);
+
+    if (
+      displayNameContainsBanName ||
+      nicknameContainsBanName ||
+      userNameContainsBanName
+    ) {
+      if (guildMember.guild.id === "315008534582657024") return true;
+
       const usersDate = new Date(guildMember.user.createdAt);
       const diffDay = dateDiffInDaysUntilToday(usersDate);
       const accountIsTooNew = diffDay < MINIMUM_DISCORD_ACCOUNT_OLD_DAYS;
@@ -63,7 +118,7 @@ export const banIllegalNames = (
 };
 
 export const findMembersWithIllegalNames = (
-  members: UserGuildMemberTuple[]
+  members: Collection<string, GuildMember>
 ): CachedMember[] => {
   const possibleBans: CachedMember[] = [];
 
@@ -73,8 +128,46 @@ export const findMembersWithIllegalNames = (
     const shouldBeBanned = shouldMemberBeBanned(guildMember);
 
     if (shouldBeBanned) {
+      possibleBans.push(cachedMember);
     }
   }
 
   return possibleBans;
 };
+
+export const groupMembersThatShouldBeBanned = (
+  message: Message,
+  guildMembersUpForBan: CachedMember[]
+): BanGroup => {
+  const { author, guild } = message;
+  const banGroup: BanGroup = { owner: author, guild: guild, group: null };
+  const listSize = guildMembersUpForBan.length;
+  let groupNumber = 0;
+
+  const group: Map<number, Array<CachedMember>> = new Map();
+  for (let i = 0; i < listSize; i += GROUP_SIZE) {
+    const groupMembers: CachedMember[] = [];
+
+    for (let j = 0; j < GROUP_SIZE; j++) {
+      const offset = i + j;
+      if (offset > listSize) {
+        break;
+      }
+
+      const groupMember = guildMembersUpForBan[offset];
+      groupMembers.push(groupMember);
+    }
+    group.set(groupNumber, groupMembers);
+    groupNumber++;
+  }
+
+  banGroup.group = group;
+
+  return banGroup;
+};
+
+/**
+ * Go through GROUP_SIZE amount of members, keep adding until
+ * i % GROUP_SIZE == 0, lag ny array
+ *
+ */

@@ -1,4 +1,11 @@
-import { Client, GuildMember, Message } from "discord.js";
+import {
+  Client,
+  Collection,
+  Guild,
+  GuildMember,
+  Message,
+  User,
+} from "discord.js";
 
 export interface RunEvent {
   message: Message;
@@ -20,3 +27,9 @@ export interface BannedName {
 }
 
 export type UserGuildMemberTuple = [string, GuildMember];
+
+export interface BanGroup {
+  owner: User;
+  guild: Guild | null;
+  group: Map<number, Array<CachedMember>> | null;
+}
