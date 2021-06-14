@@ -1,13 +1,27 @@
 import { MessageEmbed, MessageReaction, User } from "discord.js";
-import {
-  findMembersWithIllegalNames,
-} from "../features/banIllegalNames";
+import { findMembersWithIllegalNames } from "../features/banIllegalNames";
 import { CachedMember, RunEvent } from "../interfaces";
 
-const REPLY_TIMEOUT = 30000;
+const REPLY_TIMEOUT = 60000;
 const DEFAULT_AVATER = "https://cdn.discordapp.com/embed/avatars/0.png";
 const CONFIRM_REACT = "✅";
 const CANCEL_REACT = "❌";
+
+const formatBannedMessage = (member: CachedMember) => {
+  const { userId, guildMember } = member;
+  const msg = `<@${userId}> : ${guildMember.user.tag}\n`;
+  return msg;
+};
+
+const standardEmbed = (author: User): MessageEmbed => {
+  let authorAvatar: string = DEFAULT_AVATER;
+  if (author.avatarURL() != null) {
+    authorAvatar = author.avatarURL() as string;
+  }
+  const embed = new MessageEmbed();
+  embed.setColor("#4b0082").setAuthor(`${author.tag}`, authorAvatar);
+  return embed;
+};
 
 export const run = async (event: RunEvent) => {
   const { message } = event;
@@ -37,28 +51,27 @@ export const run = async (event: RunEvent) => {
     let bannableUsers: string = "";
 
     const { author } = message;
-    let authorAvatar: string = DEFAULT_AVATER;
 
-    if (author.avatarURL() != null) {
-      authorAvatar = author.avatarURL() as string;
-    }
-    const embed = new MessageEmbed();
-    embed
-      .setColor("#4b0082")
-      .setTitle(`Purge\nThere were ${bannedAmount} user found worth banning.\n`)
-      .setAuthor(`${author.tag}`, authorAvatar)
-      .setDescription("Do you wish to ban these accounts?");
-
-    for (let member of bannedPeople) {
-      const { userId, guildMember } = member;
-
-      const msg = `<@${userId}> : ${guildMember.user.tag}\n`;
-      bannableUsers += msg;
-    }
-    embed.setTimestamp();
+    const embed = standardEmbed(author).setTitle(
+      `Purge\nThere were ${bannedAmount} user found worth banning.\n`
+    );
 
     message.reply(worthBanning);
-    message.channel.send(bannableUsers, { split: true });
+
+    if (bannedPeople.length > 25) {
+      for (let member of bannedPeople) {
+        const msg = formatBannedMessage(member);
+        bannableUsers += msg;
+      }
+      message.channel.send(bannableUsers, { split: true });
+    } else {
+      for (let member of bannedPeople) {
+        const msg = formatBannedMessage(member);
+        embed.addField("\u200b", msg);
+      }
+      embed.setTimestamp();
+      message.channel.send(embed);
+    }
 
     const filter = (reaction: MessageReaction, user: User) => {
       return (
@@ -67,7 +80,11 @@ export const run = async (event: RunEvent) => {
       );
     };
 
-    message.channel.send(embed).then((msg) => {
+    const confirmEmbed = standardEmbed(author)
+      .setTitle(`Purge\nThere were ${bannedAmount} user found worth banning.\n`)
+      .setDescription("Do you wish to ban these accounts?");
+
+    message.channel.send(confirmEmbed).then((msg) => {
       msg.react(CONFIRM_REACT);
       msg.react(CANCEL_REACT);
       msg
@@ -79,8 +96,13 @@ export const run = async (event: RunEvent) => {
         .then((collected) => {
           const reaction = collected.first();
           const emojiName = reaction?.emoji.name;
+
           if (emojiName === CONFIRM_REACT) {
-            message.reply(`You reacted that you want to ban the users.`);
+            message.reply(`Commencing Ban.`);
+            for (let member of bannedPeople) {
+              member.guildMember.ban();
+            }
+            message.reply(`Ban Completed.`);
           } else {
             message.reply(`You reacted that you do not want to ban the users.`);
           }
@@ -92,14 +114,6 @@ export const run = async (event: RunEvent) => {
           message.react("🤷");
         });
     });
-
-    // message
-    //   .reply(replyString, {
-    //     split: true,
-    //   })
-    //   .then(() => {
-    //     message.channel.awaitMessages();
-    //   }); // parse https://discordjs.guide/popular-topics/collectors.html#await-messages
   }
 };
 
