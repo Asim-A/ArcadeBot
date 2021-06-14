@@ -1,6 +1,9 @@
-import { Client, Collection, Message } from "discord.js";
+import { Client, Collection, Message, RoleManager } from "discord.js";
 import { readdir } from "fs";
-import { banIllegalNames } from "./features/banIllegalNames";
+import {
+  banIllegalNames,
+  serverProtectionRoleCheck,
+} from "./features/banIllegalNames";
 import { RunEvent } from "./interfaces";
 import { logger } from "./util/logger";
 
@@ -9,9 +12,9 @@ require("dotenv").config();
 const client = new Client();
 const PREFIX = "##";
 const BOT_TOKEN = process.env.BOT_TOKEN;
+
 const commands: Collection<string[], (event: RunEvent) => any> =
   new Collection();
-
 const PATH = "./src/commands";
 const COMMAND_SOURCE_PATH = "./commands";
 
@@ -38,6 +41,7 @@ readdir(`${PATH}`, (err, filesInDir) => {
 });
 
 client.on("ready", () => {
+  client.guilds.cache.forEach((guild) => serverProtectionRoleCheck(guild));
   console.log(`Logged in as ${client?.user?.tag}!`);
 });
 
