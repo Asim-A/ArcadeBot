@@ -1,10 +1,11 @@
-import { Client, Collection, Message, RoleManager } from "discord.js";
+import { Client, Collection, Message } from "discord.js";
 import { readdir } from "fs";
 import {
   banIllegalNames,
   serverProtectionRoleCheck,
 } from "./features/banIllegalNames";
 import { RunEvent } from "./interfaces";
+import { checkForCreeps } from "./services/channel.service";
 import { logger } from "./util/logger";
 
 require("dotenv").config();
@@ -42,10 +43,27 @@ readdir(`${PATH}`, (err, filesInDir) => {
 
 client.on("ready", () => {
   client.guilds.cache.forEach((guild) => serverProtectionRoleCheck(guild));
+
+  setInterval(() => {
+    client.guilds.cache.forEach((guild) => {
+      checkForCreeps(guild);
+    });
+  }, 1000);
+
   console.log(`Logged in as ${client?.user?.tag}!`);
 });
 
 client.on("message", async (message: Message) => {
+  const channels = await message.guild?.channels.cache;
+  if (!channels) return;
+  channels.forEach((channel) => {
+    channel.members.forEach((member) => {
+      "".split("").includes;
+      const voice = member.voice;
+      console.log(`Status: ${voice.selfVideo}`);
+    });
+  });
+
   if (
     message.channel.type === "dm" ||
     message.author.bot ||
@@ -76,7 +94,6 @@ client.on("message", async (message: Message) => {
 client.on("guildMemberAdd", async (member) => {
   const userId = member.user.id;
   const guildMember = member;
-
   banIllegalNames([userId, guildMember]);
 });
 
