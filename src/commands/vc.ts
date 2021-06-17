@@ -116,7 +116,7 @@ export const run = (event: RunEvent) => {
     const hasCameraOn = member.voice.selfVideo;
     const isProtected = isProtectedFromDisconnect(member);
 
-    if (!hasCameraOn || isProtected) {
+    if (!hasCameraOn || !isProtected) {
       usersWithoutCamera.set(member.id, {
         user: member,
         timeWithCameraOff: new Date(),
