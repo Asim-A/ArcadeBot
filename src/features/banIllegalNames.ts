@@ -1,43 +1,18 @@
-import { Collection, Guild, GuildMember, Message } from "discord.js";
+import { Collection, GuildMember, Message } from "discord.js";
+import { ROLE_NAMES } from "../services/role.service";
 import { BanGroup, CachedMember, UserGuildMemberTuple } from "../interfaces";
 import { getBannedGroupSize, getBannedList } from "../services/banned.service";
 import { dateDiffInDaysUntilToday } from "../util/date";
 
 const BAN_LIST = getBannedList();
-
 const MINIMUM_DISCORD_ACCOUNT_OLD_DAYS = 30;
-const PROTECTED_ROLE_NAME = "PurgeProtection";
 const GROUP_SIZE = getBannedGroupSize();
-
-const createProtectionRole = (): Object => {
-  const role = {
-    data: {
-      name: PROTECTED_ROLE_NAME,
-    },
-    reason: "Role to protect against purge.",
-  };
-  return role;
-};
-
-export const serverProtectionRoleCheck = (guild: Guild) => {
-  const roles = guild.roles.cache;
-  let hasProtectedRole: boolean = false;
-  roles.forEach((role) => {
-    if (role.name === PROTECTED_ROLE_NAME) {
-      hasProtectedRole = true;
-    }
-  });
-
-  if (!hasProtectedRole) {
-    guild.roles.create(createProtectionRole());
-  }
-};
 
 const memberHasProtection = (member: GuildMember): boolean => {
   const memberRoles = member.roles.cache;
   let isProtected = false;
   memberRoles.forEach((role) => {
-    if (role.name === PROTECTED_ROLE_NAME) {
+    if (role.name === ROLE_NAMES.purge) {
       isProtected = true;
     }
   });

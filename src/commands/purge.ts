@@ -1,9 +1,9 @@
-import { MessageEmbed, MessageReaction, User } from "discord.js";
+import { MessageReaction, User } from "discord.js";
+import { standardEmbed } from "../services/embed.service";
 import { findMembersWithIllegalNames } from "../features/banIllegalNames";
 import { CachedMember, RunEvent } from "../interfaces";
 
 const REPLY_TIMEOUT = 60000;
-const DEFAULT_AVATER = "https://cdn.discordapp.com/embed/avatars/0.png";
 const CONFIRM_REACT = "✅";
 const CANCEL_REACT = "❌";
 
@@ -11,16 +11,6 @@ const formatBannedMessage = (member: CachedMember) => {
   const { userId, guildMember } = member;
   const msg = `<@${userId}> : ${guildMember.user.tag}\n`;
   return msg;
-};
-
-const standardEmbed = (author: User): MessageEmbed => {
-  let authorAvatar: string = DEFAULT_AVATER;
-  if (author.avatarURL() != null) {
-    authorAvatar = author.avatarURL() as string;
-  }
-  const embed = new MessageEmbed();
-  embed.setColor("#4b0082").setAuthor(`${author.tag}`, authorAvatar);
-  return embed;
 };
 
 export const run = async (event: RunEvent) => {
@@ -69,7 +59,6 @@ export const run = async (event: RunEvent) => {
         const msg = formatBannedMessage(member);
         embed.addField("\u200b", msg);
       }
-      embed.setTimestamp();
       message.channel.send(embed);
     }
 
