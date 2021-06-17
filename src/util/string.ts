@@ -13,3 +13,8 @@ export const splitAtFirstSpace = (str: string) => {
     return [str.substring(0, i), str.substring(i + 1)];
   } else return [str];
 };
+
+export const isNumerical = (input: string) => {
+  const isNum = /^\d+$/.test(input);
+  return isNum;
+};

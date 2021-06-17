@@ -1,4 +1,5 @@
 const _MS_PER_DAY = 1000 * 60 * 60 * 24;
+const _MS_SECOND = 1000;
 
 /**
  *
@@ -24,4 +25,10 @@ export const dateDiffInDays = (
 export const dateDiffInDaysUntilToday = (earlierPointInTime: Date): number => {
   const todaysDate = new Date();
   return dateDiffInDays(earlierPointInTime, todaysDate);
+};
+
+export const dateDiffInSeconds = (startTime: Date) => {
+  const now = new Date();
+  const seconds = (now.getTime() - startTime.getTime()) / _MS_SECOND;
+  return seconds;
 };
