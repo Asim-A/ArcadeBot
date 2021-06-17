@@ -9,10 +9,14 @@ const TIME_IN_CHANNEL_THRESHOLD_SECONDS = 5;
 
 export const isProtectedFromDisconnect = (member: GuildMember) => {
   const isAdmin = member.hasPermission(["ADMINISTRATOR"]);
-  const hasVoiceProtect =
-    member.roles.cache.find((r) => r.name === ROLE_NAMES.vcProt) != null;
+  const hasVoiceProtect = member.roles.cache.some(
+    (r) => r.name === ROLE_NAMES.vcProt
+  );
 
-  if (isAdmin || hasVoiceProtect) {
+  if (isAdmin) {
+    return true;
+  }
+  if (hasVoiceProtect) {
     return true;
   }
   return false;
