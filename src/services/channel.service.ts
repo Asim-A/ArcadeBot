@@ -84,6 +84,12 @@ export const checkForCreeps = (guild: Guild) => {
           }
         }
       }
+      if (hasOnCamera || isProtected) {
+        const inLocal = userMap.some((_, k) => k === memberInChannel.id);
+        if (inLocal != null) {
+          userMap.delete(memberInChannel.id);
+        }
+      }
     });
   });
 };

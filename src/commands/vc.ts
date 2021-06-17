@@ -112,18 +112,6 @@ export const run = (event: RunEvent) => {
     return;
   }
 
-  channel.members.forEach((member) => {
-    const hasCameraOn = member.voice.selfVideo;
-    const isProtected = isProtectedFromDisconnect(member);
-
-    if (!hasCameraOn && !isProtected) {
-      usersWithoutCamera.set(member.id, {
-        user: member,
-        timeWithCameraOff: new Date(),
-      });
-    }
-  });
-
   message.reply(`Channel <#${channelId}> registered. 👀`);
 };
 
