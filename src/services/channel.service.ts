@@ -57,7 +57,7 @@ export const checkForCreeps = (guild: Guild) => {
       const hasOnCamera = memberInChannel.voice.selfVideo;
       const isProtected = isProtectedFromDisconnect(memberInChannel);
 
-      if (!hasOnCamera || !isProtected) {
+      if (!hasOnCamera && !isProtected) {
         const inLocal = userMap.get(memberInChannel.id);
 
         if (inLocal == null) {
