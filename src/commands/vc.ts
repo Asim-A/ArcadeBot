@@ -2,11 +2,18 @@ import {
   GuildChannel,
   GuildChannelManager,
   Message,
-  MessageEmbed,
+  TextChannel,
+  User,
 } from "discord.js";
-import { getVoiceChannelUsers, voiceMap } from "../services/channel.service";
+import {
+  getVoiceChannelUsers,
+  isProtectedFromDisconnect,
+  listVoiceChannel,
+  voiceMap,
+} from "../services/channel.service";
 import { isNumerical } from "../util/string";
 import { RunEvent } from "../interfaces";
+import { standardEmbed } from "../services/embed.service";
 
 const getChannel = (
   channelInfo?: string,
@@ -28,25 +35,45 @@ const getChannel = (
   }
 };
 
-const listVoiceChannel = (message: Message, guildId: string) => {
-  if (voiceMap.has(guildId)) {
-    const g = voiceMap.get(guildId);
-    if (g?.channels != null) {
-      const channelEmbeds = g.channels.map((value, key) => {
-        const embedField = {
-          name: "\u200b",
-          value: key,
-        };
-        return embedField;
-      });
-      const embed = new MessageEmbed()
-        .setAuthor("SMASH")
-        .setColor("#603F83FF")
-        .setTitle("Voice Channels With Camera Requirement")
-        .addFields(channelEmbeds);
-      message.channel.send(embed);
-    }
+const logToTextChannel = (
+  channel?: GuildChannel,
+  author?: User,
+  command?: string
+) => {
+  if (
+    channel != null &&
+    channel.type === "text" &&
+    author != null &&
+    command != null
+  ) {
+    const embed = standardEmbed(author);
+    embed
+      .setTitle(`User Attempted To Use Command Without Sufficient Permission.`)
+      .setDescription(
+        `User <@${author.id}> attempted to use command: ${command}.`
+      );
+
+    (channel as TextChannel).send(embed);
   }
+};
+
+const loggableGuildAndChannel = (
+  guildId: string,
+  message: Message
+): GuildChannel | undefined => {
+  if (guildId === "377463285718450177") {
+    const loggingChannel = message.guild?.channels.cache.find(
+      (c) => c.id === "506966760021295123"
+    );
+    return loggingChannel;
+  } else if (guildId === "315008534582657024") {
+    const loggingChannel = message.guild?.channels.cache.find(
+      (c) => c.id === "415663300026695710"
+    );
+    return loggingChannel;
+  }
+
+  return;
 };
 
 export const run = (event: RunEvent) => {
@@ -57,6 +84,13 @@ export const run = (event: RunEvent) => {
   const channelManager = message.guild?.channels;
 
   if (message == null || guildId == null) return;
+  if (!message.member?.hasPermission(["ADMINISTRATOR"])) {
+    // Asim-A 17.06.2021 TODO: This should be extracted to a service for reuse.
+    const loggableChannel = loggableGuildAndChannel(guildId, message);
+    logToTextChannel(loggableChannel, message.author, event.command);
+    return;
+  }
+
   if (args.length == 0) {
     listVoiceChannel(message, guildId);
     return;
@@ -73,15 +107,16 @@ export const run = (event: RunEvent) => {
     return;
   }
 
+  const usersWithoutCamera = getVoiceChannelUsers(guildId, channelId);
+  if (usersWithoutCamera == null) {
+    return;
+  }
+
   channel.members.forEach((member) => {
     const hasCameraOn = member.voice.selfVideo;
+    const isProtected = isProtectedFromDisconnect(member);
 
-    if (!hasCameraOn) {
-      const usersWithoutCamera = getVoiceChannelUsers(guildId, channelId);
-      if (usersWithoutCamera == null) {
-        return;
-      }
-
+    if (!hasCameraOn || isProtected) {
       usersWithoutCamera.set(member.id, {
         user: member,
         timeWithCameraOff: new Date(),

@@ -1,11 +1,9 @@
 import { Client, Collection, Message } from "discord.js";
 import { readdir } from "fs";
-import {
-  banIllegalNames,
-  serverProtectionRoleCheck,
-} from "./features/banIllegalNames";
+import { banIllegalNames } from "./features/banIllegalNames";
 import { RunEvent } from "./interfaces";
 import { checkForCreeps } from "./services/channel.service";
+import { serverRolesCheck } from "./services/role.service";
 import { logger } from "./util/logger";
 
 require("dotenv").config();
@@ -18,6 +16,8 @@ const commands: Collection<string[], (event: RunEvent) => any> =
   new Collection();
 const PATH = "./src/commands";
 const COMMAND_SOURCE_PATH = "./commands";
+
+const CHECK_INTERVAL = 1000;
 
 readdir(`${PATH}`, (err, filesInDir) => {
   if (err) {
@@ -42,13 +42,13 @@ readdir(`${PATH}`, (err, filesInDir) => {
 });
 
 client.on("ready", () => {
-  client.guilds.cache.forEach((guild) => serverProtectionRoleCheck(guild));
+  client.guilds.cache.forEach((guild) => serverRolesCheck(guild));
 
   setInterval(() => {
     client.guilds.cache.forEach((guild) => {
       checkForCreeps(guild);
     });
-  }, 1000);
+  }, CHECK_INTERVAL);
 
   console.log(`Logged in as ${client?.user?.tag}!`);
 });
@@ -56,13 +56,6 @@ client.on("ready", () => {
 client.on("message", async (message: Message) => {
   const channels = await message.guild?.channels.cache;
   if (!channels) return;
-  channels.forEach((channel) => {
-    channel.members.forEach((member) => {
-      "".split("").includes;
-      const voice = member.voice;
-      console.log(`Status: ${voice.selfVideo}`);
-    });
-  });
 
   if (
     message.channel.type === "dm" ||
@@ -84,6 +77,7 @@ client.on("message", async (message: Message) => {
     return;
   } else {
     commandRunnable({
+      command,
       message,
       args,
       client,

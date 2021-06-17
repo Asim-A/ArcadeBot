@@ -2,13 +2,14 @@ import {
   Client,
   Collection,
   Guild,
-  GuildChannel,
   GuildMember,
   Message,
+  RoleData,
   User,
 } from "discord.js";
 
 export interface RunEvent {
+  command: string;
   message: Message;
   client: Client;
   args: string[];
@@ -42,4 +43,9 @@ export interface ChannelContainer {
 export interface CameraVoiceChannelUser {
   timeWithCameraOff: Date;
   user: GuildMember;
+}
+
+export interface ProtectedRole {
+  data: RoleData;
+  reason: string;
 }
