@@ -12,14 +12,8 @@ export const isProtectedFromDisconnect = (member: GuildMember) => {
   const hasVoiceProtect = member.roles.cache.some(
     (r) => r.name === ROLE_NAMES.vcProt
   );
-
-  if (isAdmin) {
-    return true;
-  }
-  if (hasVoiceProtect) {
-    return true;
-  }
-  return false;
+  const isBot = member.user.bot;
+  return isAdmin || hasVoiceProtect || isBot;
 };
 
 export const listVoiceChannel = (message: Message, guildId: string) => {
